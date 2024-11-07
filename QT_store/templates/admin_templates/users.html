@@ -1,0 +1,39 @@
+{% extends 'admin_templates/admin_base.html' %}
+{% load static %}
+{% block title %}
+Пользователи
+{% endblock %}
+{% block content %}
+<div class="container py-3" style="width: 80%;">
+    <table class="table text-center" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <thead>
+            <tr class="products">
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th>Организация</th>
+                <th>Почта</th>
+                <th>Номер телефона</th>
+                <th>Первоначальный пароль</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in users_with_data %}
+            <tr>
+                <td>{{ data.user.first_name }}</td>
+                <td>{{ data.user.last_name }}</td>
+                <td>{{ data.organization }}</td>
+                <td>{{ data.user.email }}</td>
+                <td>{{ data.phone_number }}</td>
+                <td>
+                    <span id="initial_password_{{ data.user.id }}" class="d-none">{{ data.initial_password }}</span>
+                    <span id="plain_password_{{ data.user.id }}">*******</span>
+                    <button type="button" class="" style="border: none; background-color: transparent; float: right;" onclick="togglePassword({{ data.user.id }})">
+                        <i id="eyeIcon_{{ data.user.id }}" class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

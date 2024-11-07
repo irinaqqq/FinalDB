@@ -1,0 +1,32 @@
+{% extends 'admin_templates/admin_base.html' %}
+{% load static %}
+{% block title %}
+Запросы
+{% endblock %}
+{% block content %}
+<div class="container py-3" style="width: 80%;">
+    <table class="table text-center" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <tr class="products">
+            <th>Имя и Фамилия</th>
+            <th>Организация</th>
+            <th>Почта</th>
+            <th>Телефонный номер</th>
+            <th>Действия</th>
+        </tr>
+        {% for request in requests %}
+        <tr>
+            <td class="products-td">{{ request.first_name }} {{ request.last_name }}</td>
+            <td class="products-td">{{ request.organization }}</td>
+            <td class="products-td">{{ request.email }}</td>
+            <td class="products-td">{{ request.phone_number }}</td>
+            <td class="products-td">  
+                <div style="display: grid; justify-items: center;">
+                <a href="{% url 'approve_request' request.id %}">Зарегистрировать</a>
+                <a href="{% url 'reject_request' request.id %}">Отклонить</a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

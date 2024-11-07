@@ -1,0 +1,57 @@
+{% extends 'admin_templates/admin_base.html' %}
+{% load static %}
+{% block title %}
+Продукты
+{% endblock %}
+{% block content %}
+<style>
+
+</style>
+<div class="container py-3" style="width: 80%;">
+  <div class="pb-3">
+    <select id="category-select" class="ui fluid search dropdown" style="width: auto;">
+      <option value="all">Все категории</option>
+      {% for category in categories %}
+        <option value="{{ category.name  }}">{{ category.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <table id="products-table" class="table text-center" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <thead>
+      <tr class="products">
+        <th><span id="index-header" class="products-span">#</span></th>
+        <th><span id="category-header" class="products-span">Категория</span></th>
+        <th><span id="name-header" class="products-span">Название</span></th>
+        <th>Изображение</th>
+        <th>Редактировать</th>
+        <th>Удаление</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td class="products-td">{{ forloop.counter }}</td>
+        <td class="products-td">{{ product.category }}</td>
+        <td class="products-td">{{ product.name }}</td>
+        <td class="products-td">
+          <img src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" style="max-width: 100px;">
+        </td>
+        <td class="products-td"><a href="{% url 'edit_product' product.pk %}" class="justify-content-center"><i class="fa-solid fa-pen-to-square fa-3x" style="color:#00a2e8;"></i></a></td>
+        <td class="products-td">
+          <form action="{% url 'delete_product' product.pk %}" method="post" class="d-flex justify-content-center">
+              {% csrf_token %}
+              <button type="submit" onclick="return confirm('Вы уверены, что хотите удалить этот продукт?')" style="border: none; background-color: transparent;"><i class="fa-solid fa-trash fa-3x" style="color: red;"></i></button>
+          </form>
+      </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="fixed-action-button">
+  <a href="{% url 'add_product' %}" style="color: #00a2e8;">
+      <i class="fa-solid fa-circle-plus fa-5x"></i>
+  </a>
+</div>
+{% endblock %}

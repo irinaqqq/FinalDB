@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+Домашняя страница
+{% endblock %}
+{% block meta_description %}
+<meta name="description" content="Добро пожаловать на домашнюю страницу">
+{% endblock %}
+{% block content %}
+<style>
+</style>
+    <body>
+        <div class="image-container image-container4">
+            <a href="{% url 'categories' %}" class="image-part" id="part1">
+                <div class="text-container size2" style="font-weight: 200;" >
+                    Наши продукты
+                </div>
+            </a>
+            <a href="{% url 'lab' %}" class="image-part" id="part2">
+                <div class="text-container size3" style="top: 50%; font-weight: 200;">
+                    QazTech Lab
+                </div>
+            </a>
+            <a href="{% url 'login' %}" class="image-part" id="part3">
+                <div class="text-container size3" style="top: 50%; font-weight: 200;">
+                    B2B
+                </div>
+            </a>
+            <a href="{% url 'aboutus' %}" class="image-part" id="part4">
+                <div class="text-container size3" style="top: 50%; font-weight: 200;">
+                    О нас 
+                </div>
+            </a>
+            <a href="{% url 'partners' %}" class="image-part" id="part5">
+                <div class="text-container size3" style="top: 50%; font-weight: 200;">
+                    Наши партнеры
+                </div>
+            </a>
+        </div>
+</body>
+{% endblock %}

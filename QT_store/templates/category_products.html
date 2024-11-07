@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+{{ category.name }}
+{% endblock %}
+{% block content %}
+<div class="image-container2" style="background-image: url('/media/{{ category.imageback }}');">
+  <div class="text-container3">
+      {{ category.description }}
+  </div>
+</div>
+
+  <div class="container" style="width: 100%; padding-top: 3rem;">
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-md-3">
+            <a href="{% url 'product_detail' product.id %}" class="h-100">
+          <div class="card h-100">
+            {% if product.images %}
+                <img src="/media/{{ product.images.0.image }}" class="card-img-top" 
+                     alt="{{ product.name }}" style="object-fit: contain;"/>
+            {% else %}
+                <img src="{% static 'images/placeholder.png' %}" class="card-img-top" 
+                     alt="Placeholder Image" style="object-fit: contain;"/>
+            {% endif %}
+            <div class="card-body d-flex">
+              <div class="mt-auto">
+                <h5 class="card-title" style="">{{ product.name }}</h5>
+                <p class="card-text">
+                  {% if product.features %}
+                  {{ product.features }}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+            </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,690 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+{{ product.name }}
+{% endblock %}
+{% block content %}
+<style>
+  /* Стили для модального окна и затемненного фона */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 600px;
+}
+
+.modal-content {
+  margin: auto;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#overlay {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+}
+
+</style>
+<section class="py-5 border-bottom">
+    <div class="container w-100">
+      <div class="row gx-5">
+        <aside class="col-lg-6">
+            <div class="border rounded-4 mb-3 d-flex justify-content-center">
+                {% if product.images.all %}
+                    <!-- Главное изображение продукта -->
+                    <img id="main-image" style="width: 100%; height: 500px; margin: auto; object-fit: contain;" class="rounded-4 fit" src="{{ product.images.all.0.image.url }}" alt="{{ product.name }}" />
+                {% else %}
+                    <!-- Placeholder если нет изображений -->
+                    <!-- <img style="max-width: 100%; max-height: 100vh; margin: auto;" class="rounded-4 fit" src="placeholder-image-url.jpg" alt="Нет изображения" /> -->
+                {% endif %}
+            </div>
+            <div class="d-flex justify-content-center mb-3">
+                {% for image in product.images.all %}
+                <div class="border mx-1 rounded-2">
+                    <img onclick="changeMainImage('{{ image.image.url }}')" width="60" height="60" class="rounded-2" src="{{ image.image.url }}" alt="{{ product.name }}" style="object-fit: contain; cursor: pointer;"/>
+                </div>
+            {% endfor %}
+            </div>
+            <!-- Ваш шаблон Django -->
+            {% if user.is_authenticated %}
+            <a href="#" id="addToCartBtn" class="btn btn-primary shadow-0 w-100 d-block">Добавить в корзину</a>
+
+            <div id="addToCartModal" class="modal  h-auto">
+                <i class="fa-solid fa-xmark close" style="position: absolute; top: 5px; right: 5px;"></i>
+                <form method="post">
+                  {% csrf_token %}
+                  {{ form.product }}
+                  <h4 class="mb-0">Выбор Конфигурации</h4>
+                  <!-- Processor field -->
+                  {% if form.processor.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_processor" class="form-label mt-2">Процессор</label>
+                      <select class="ui fluid search dropdown" name="processor" id="id_processor" required>
+                        <option value="" disabled selected>Выберите процессор</option>
+                          {% for processor in form.processor.field.queryset %}
+                          <option value="{{ processor.pk }}">{{ processor }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Motherboard field -->
+                  {% if form.mother.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_mother" class="form-label mt-2">Материнская плата</label>
+                      <select class="ui fluid search dropdown" name="mother" id="id_mother" required>
+                        <option value="" disabled selected>Выберите материнскую плату</option>
+                          {% for motherboard in form.mother.field.queryset %}
+                          <option value="{{ motherboard.pk }}">{{ motherboard }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- RAM field -->
+                  {% if form.ram.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_ram" class="form-label mt-2">Оперативная память</label>
+                      <select class="ui fluid search dropdown" name="ram" id="id_ram" required>
+                        <option value="" disabled selected>Выберите оперативную память</option>
+                          {% for ram in form.ram.field.queryset %}
+                          <option value="{{ ram.pk }}">{{ ram }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Storage field -->
+                  {% if form.storage.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_storage" class="form-label mt-2">Накопители</label>
+                      <select class="ui fluid search dropdown" name="storage" id="id_storage" required>
+                        <option value="" disabled selected>Выберите накопители</option>
+                          {% for storage in form.storage.field.queryset %}
+                          <option value="{{ storage.pk }}">{{ storage }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Graphics field -->
+                  {% if form.graphics.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_graphics" class="form-label mt-2">Видеокарта</label>
+                      <select class="ui fluid search dropdown" name="graphics" id="id_graphics" required>
+                        <option value="" disabled selected>Выберите размер памяти видеокарты</option>
+                          {% for graphics in form.graphics.field.queryset %}
+                          <option value="{{ graphics.pk }}">{{ graphics }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Operating System field -->
+                  {% if form.operating_system.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_operating_system" class="form-label mt-2">Операционная система</label>
+                      <select class="ui fluid search dropdown" name="operating_system" id="id_operating_system" required>
+                        <option value="" disabled selected>Выберите операционную систему</option>  
+                        {% for os in form.operating_system.field.queryset %}
+                          <option value="{{ os.pk }}">{{ os }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Screen Sizes field -->
+                  {% if form.screen_sizes.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_screen_sizes" class="form-label mt-2">Размер экрана</label>
+                      <select class="ui fluid search dropdown" name="screen_sizes" id="id_screen_sizes" required>
+                        <option value="" disabled selected>Выберите размер экрана</option>
+                          {% for size in form.screen_sizes.field.queryset %}
+                          <option value="{{ size.pk }}">{{ size }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Screen Type field -->
+                  {% if form.screen_type.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_screen_type" class="form-label mt-2">Тип экрана</label>
+                      <option value="" disabled selected>Выберите тип экрана</option>
+                      <select class="ui fluid search dropdown" name="screen_type" id="id_screen_type" required>
+                          {% for type in form.screen_type.field.queryset %}
+                          <option value="{{ type.pk }}">{{ type }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Screen Resolution field -->
+                  {% if form.screen_resolution.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_screen_resolution" class="form-label mt-2">Разрешение экрана</label>
+                      <select class="ui fluid search dropdown" name="screen_resolution" id="id_screen_resolution" required>
+                        <option value="" disabled selected>Выберите разрешение экрана</option>  
+                        {% for resolution in form.screen_resolution.field.queryset %}
+                          <option value="{{ resolution.pk }}">{{ resolution }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Touch Screen Touches field -->
+                  {% if form.touch_screen_touches.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_touch_screen_touches" class="form-label mt-2">Количество касаний одновременно</label>
+                      <select class="ui fluid search dropdown" name="touch_screen_touches" id="id_touch_screen_touches" required>
+                        <option value="" disabled selected>Выберите кол-во касаний</option>  
+                        {% for touches in form.touch_screen_touches.field.queryset %}
+                          <option value="{{ touches.pk }}">{{ touches }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Form Factor field -->
+                  {% if form.formfactor.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_formfactor" class="form-label mt-2">Форм-фактор</label>
+                      <select class="ui fluid search dropdown" name="formfactor" id="id_formfactor" required>
+                        <option value="" disabled selected>Выберите форм-фактор</option>
+                          {% for factor in form.formfactor.field.queryset %}
+                          <option value="{{ factor.pk }}">{{ factor }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Webcam field -->
+                  {% if form.webcam.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_webcam" class="form-label mt-2">Веб камера</label>
+                      <select class="ui fluid search dropdown" name="webcam" id="id_webcam" required>
+                        <option value="" disabled selected>Выберите веб-камеру</option>
+                          {% for cam in form.webcam.field.queryset %}
+                          <option value="{{ cam.pk }}">{{ cam }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Keyboard Set field -->
+                  {% if form.keyset.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_keyset" class="form-label mt-2">Комплект клавиатура и мышь</label>
+                      <select class="ui fluid search dropdown" name="keyset" id="id_keyset" required>
+                        <option value="" disabled selected>Выберите тип клавиатуры и мыши</option>
+                          {% for keyset in form.keyset.field.queryset %}
+                          <option value="{{ keyset.pk }}">{{ keyset }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Keyboard Backlight field -->
+                  {% if form.keyboard_backlight.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_keyboard_backlight" class="form-label mt-2">Подсветка клавиатуры</label>
+                      <select class="ui fluid search dropdown" name="keyboard_backlight" id="id_keyboard_backlight" required>
+                        <option value="" disabled selected>Нужна ли подсветка клавиатуры?</option>  
+                        {% for backlight in form.keyboard_backlight.field.queryset %}
+                          <option value="{{ backlight.pk }}">{{ backlight }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Power Supplies field -->
+                  {% if form.power_supplies.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_power_supplies" class="form-label mt-2">Блоки питания</label>
+                      <select class="ui fluid search dropdown" name="power_supplies" id="id_power_supplies" required>
+                        <option value="" disabled selected>Выберите мощность блока питания</option>  
+                        {% for supply in form.power_supplies.field.queryset %}
+                          <option value="{{ supply.pk }}">{{ supply }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Sizes field -->
+                  {% if form.sizes.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_sizes" class="form-label mt-2">Размеры</label>
+                      <select class="ui fluid search dropdown" name="sizes" id="id_sizes" required>
+                        <option value="" disabled selected>Выберите размер</option>
+                          {% for size in form.sizes.field.queryset %}
+                          <option value="{{ size.pk }}">{{ size }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+              
+                  <!-- Controllers field -->
+                  {% if form.controllers.field.queryset|length > 1 %}
+                  <div class="form-group">
+                      <label for="id_controllers" class="form-label mt-2">Контроллеры</label>
+                      <select class="ui fluid search dropdown" name="controllers" id="id_controllers" required>
+                        <option value="" disabled selected>Выберите контроллер</option>
+                          {% for controller in form.controllers.field.queryset %}
+                          <option value="{{ controller.pk }}">{{ controller }}</option>
+                          {% endfor %}
+                      </select>
+                  </div>
+                  {% endif %}
+                  
+                  <!-- Quantity field -->
+                  <div class="form-group">
+                    <label for="id_quantity" class="form-label mt-2">Количество</label>
+                    <input type="number" name="quantity" id="id_quantity" min="1" value="1" required class="form-control">
+                  </div>
+
+                  <!-- Note field -->
+                  <div class="form-group">
+                    <label for="id_note" class="form-label mt-2">Примечание</label>
+                    <textarea name="note" rows="2" id="id_note" class="form-control"></textarea>
+                  </div>
+                  
+
+                  <!-- Submit button -->
+                  <button type="submit" class="btn btn-primary shadow-0 w-100 d-block" style="margin-top: 20px;">Добавить в корзину</button>
+              </form>
+            </div>
+            <div id="overlay"></div> <!-- Пустой DIV для затемнения -->
+            {% else %}
+            <a href="{% url 'login' %}" class="btn btn-primary shadow-0 w-100 d-block">Добавить в корзину</a>
+            {% endif %}
+
+            <script>
+              // JavaScript для открытия и закрытия модального окна и затемнения фона
+            document.addEventListener('DOMContentLoaded', function() {
+              var modal = document.getElementById('addToCartModal');
+              var btn = document.getElementById('addToCartBtn');
+              var span = document.getElementsByClassName('close')[0];
+              var overlay = document.getElementById('overlay');
+
+              btn.onclick = function() {
+                modal.style.display = 'block';
+                overlay.style.display = 'block'; // Показываем затемнение фона
+              }
+
+              span.onclick = function() {
+                modal.style.display = 'none';
+                overlay.style.display = 'none'; // Скрываем затемнение фона
+              }
+
+              window.onclick = function(event) {
+                if (event.target == overlay) {
+                  modal.style.display = 'none';
+                  overlay.style.display = 'none'; // Скрываем затемнение фона при клике вне модального окна
+                }
+              }
+            });
+
+            </script>
+        </aside>
+        <main class="col-lg-6">
+          <div class="ps-lg-3">
+            <h4 class="title text-dark">
+                {{ product.name }}
+            </h4>  
+            <div class="mb-3">
+              <span class="h5">
+                {% if product.features %}
+                {{ product.features }}
+                {% endif %}
+              </span>
+              <!-- <span class="text-muted">что то</span> -->
+            </div>
+  
+            <p>
+                {{ product.description }}
+            </p>
+            <hr/>
+            <div class="row">
+              {% if processors_by_brand %}
+              <dt class="col-4">Процессор:</dt>
+              <dd class="col-8">
+                {% for brand, processors in processors_by_brand.items %}
+                {% if not forloop.first %}<br>{% endif %}{{ brand }} {% for processor_type, processor_list in processors.items %}{% if processor_type %}{{ processor_type }} {% endif %}{% for processor in processor_list %}{{ processor }}{% if not forloop.last %}/{% endif %}{% endfor %}{% if not forloop.last %}/{% endif %}
+                {% endfor %}
+                {% endfor %}
+              </dd>
+              {% endif %}
+              {% if min_ram_size is not none and max_ram_size is not none %}
+              <dt class="col-4">Оперативная память:</dt>
+              <dd class="col-8">
+                  от {{ min_ram_size }} ГБ до {{ max_ram_size }} ГБ
+              </dd>
+              {% endif %}
+              {% if min_storage_size is not none and max_storage_size is not none %}
+              <dt class="col-4">Накопители:</dt>
+              <dd class="col-8">
+                  от {{ min_storage_size }} {% if min_storage_unit == "GB" %} ГБ {% else %} ТБ {% endif %}
+                  до {{ max_storage_size }} {% if max_storage_unit == "GB" %} ГБ {% else %} ТБ {% endif %}
+              </dd>
+              {% endif %}
+              {% if product.weight %}
+              <dt class="col-4">Вес:</dt>
+              <dd class="col-8">                          
+                {{ product.weight }} кг
+                </dd>
+                {% endif %}
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+  
+  <!-- content -->
+
+  
+  <!-- Page Content -->
+  {% for description in descriptions %}
+  <section class="py-4 bg-light">
+    {% if description.image %}
+    <div class="image-container" style="background-image: url('{{ description.image.url }}');">
+    {% endif %}
+  </div>
+    <div class="container w-100">
+      <div class="row gx-5">
+      <h2 class="fw-light mt-2 mb-2">{{ description.title }}</h2>
+      <p>{{ description.text }}</p>
+      </div>
+    </div>
+  </section>
+  {% endfor %}
+  <section class="border-top py-4">
+    <div class="container w-100">
+      <div class="row">
+        <div class="col-lg-8 mb-4">
+          <div class="border rounded-2 px-3 py-2 bg-white">
+            <!-- Pills navs -->
+            <div class="ui top attached tabular menu">
+            <ul class="nav nav-pills nav-justified mb-3 d-flex" id="ex1" role="tablist">
+              <a class="nav-link item d-flex align-items-center justify-content-center w-100 h-auto active" data-tab="first">Основные Характеристики</a>
+              <a class="nav-link item d-flex align-items-center justify-content-center w-100 h-auto" data-tab="second">Экран и Ввод</a>
+              <a class="nav-link item d-flex align-items-center justify-content-center w-100 h-auto" data-tab="third">Связь и Периферия</a>
+              <a class="nav-link item d-flex align-items-center justify-content-center w-100 h-auto" data-tab="fourth">Эксплуатация и Габариты</a>
+              </ul>
+            </div>
+            <!-- Pills navs -->
+  
+            <!-- Pills content -->
+            <div class="tab-content" id="ex1-content">
+              <div class="ui tab active" data-tab="first">
+                <table class="table border mt-3 mb-2">
+                  {% if processors_by_brand %}
+                  <tr>
+                    <th class="py-2">Процессор:</th>
+                    <td class="py-2 text-break">
+                      {% for brand, processors in processors_by_brand.items %}
+                      {% for processor_type, processor_list in processors.items %}
+                          <li>{{ brand }}: 
+                              {% if processor_type != "" %}
+                                  {{ processor_type }} 
+                              {% endif %} {% for processor in processor_list %}{{ processor }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                          </li>
+                      {% endfor %}
+                  {% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if motherboards_by_line %}
+                  <tr>
+                    <th class="py-2">Материнская плата:</th>
+                    <td class="py-2 text-break">
+                      {% for line, types in motherboards_by_line.items %}
+                      <li>{{ line }}: {% for type, names in types.items %}{{ type }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                      </li>
+                    {% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if ram_by_type %}
+                  <tr>
+                    <th class="py-2">Оперативная память:</th>
+                    <td class="py-2 text-break">
+                      {% for ram_type, sizes in ram_by_type.items %}
+                      <li>{{ ram_type }}:
+                      {% for size in sizes %}{{ size }}{% if not forloop.last %}/{% endif %}{% endfor %} ГБ
+                      </li>
+                      {% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if formatted_storage_by_type %}
+                  <tr>
+                    <th class="py-2">Накопители:</th>
+                    <td class="py-2 text-break">
+                        {% for storage_type, sizes in formatted_storage_by_type.items %}
+                            <li>{{ storage_type }}: {% for size, unit in sizes %}{{ size }}{{ unit }}{% if not forloop.last %}/{% endif %}{% endfor %}</li>
+                        {% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.graphics.all %}
+                  <tr>
+                    <th class="py-2">Видеокарта (дискретная):</th>
+                    <td class="py-2 text-break">
+                      {% for graph in product.graphics.all %}{{ graph.size }}{% if not forloop.last %}/{% endif %}{% endfor %} ГБ
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.operating_system.all %}
+                  <tr>
+                    <th class="py-2">Операционная система:</th>
+                    <td class="py-2 text-break">
+                      {{ product.operating_system }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.power_supplies.all %}
+                    <tr>
+                      <th class="py-2">Мощность блока питания:</th>
+                      <td class="py-2 text-break">
+                        {% for power in product.power_supplies.all %}{{ power.power }}{% if not forloop.last %}/{% endif %}{% endfor %} Вт
+                      </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.controllers.all %}
+                  <tr>
+                    <th class="py-2">Контроллеры:</th>
+                    <td class="py-2 text-break">
+                        {% for contr in product.controllers.all %}{{ contr.name }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+                </table>
+              </div>
+              <div class="ui tab" data-tab="second">
+                <table class="table border mt-3 mb-2">
+                          {% if product.screen_sizes.all %}
+                          <tr>
+                            <th class="py-2 align-middle">Размер экрана:</th>
+                            <td class="py-2 text-break">
+                              {% for screen_size in product.screen_sizes.all|dictsort:"size" %}{{ screen_size.size }}{% if not forloop.last %}/{% endif %}{% endfor %} дюймов
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% if product.screen_type.all %}
+                        <tr>
+                          <th class="py-2 align-middle">Тип экрана:</th>
+                          <td class="py-2 text-break">
+                            {% for type in product.screen_type.all %}{{ type.stype }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                          </td>
+                      </tr> 
+                      {% endif %}
+                      {% if product.screen_resolution.all %}
+                      <tr>
+                        <th class="py-2 align-middle">Разрешение экрана:</th>
+                        <td class="py-2 text-break">
+                            {% for resolution in product.screen_resolution.all %}{{ resolution.resolution }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if product.touch_screen_touches.all %}
+                    <tr>
+                      <th class="py-2 align-middle">Кол-во одновременных касаний:</th>
+                      <td class="py-2 text-break">
+                        {% for touches in product.touch_screen_touches.all %}{{ touches.touches }}{% if not forloop.last %}/{% endif %}{% endfor %} касаний
+                      </td>
+                  </tr> 
+                  {% endif %}
+                  </table>
+              </div>
+              <div class="ui tab" data-tab="third">
+                <table class="table border mt-3 mb-2">
+                  
+                  {% if product.webcam.all %}
+                    <tr>
+                      <th class="py-2 align-middle">Веб-камера:</th>
+                      <td class="py-2 text-break">
+                        {% for web in product.webcam.all %}{{ web.cam }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                      </td>
+                    </tr>
+                    {% endif %}
+                    {% if product.keyset.all %}
+                    <tr>
+                      <th class="py-2 align-middle">Комплект клавиатура и мышь:</th>
+                      <td class="py-2 text-break">
+                        {% for set in product.keyset.all %}{{ set.set }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                      </td>
+                    </tr>
+                    {% endif %}
+                    {% if product.keyboard_backlight.all %}
+                    <tr>
+                      <th class="py-2 align-middle">Подсветка клавиатуры:</th>
+                      <td class="py-2 text-break">
+                          {% for light in product.keyboard_backlight.all %}{{ light.light }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                      </td>
+                  </tr>
+                  {% endif %}
+                  </table>
+              </div>
+              <div class="ui tab" data-tab="fourth">
+                <table class="table border mt-3 mb-2">
+                  {% if product.weight %}
+                  <tr>
+                    <th class="py-2 align-middle">Вес:</th>
+                    <td class="py-2 text-break">
+                      {{ product.weight }} кг
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.formfactor.all %}
+                  <tr>
+                    <th class="py-2 align-middle">Форм-фактор:</th>
+                    <td class="py-2 text-break">
+                      {% for formf in product.formfactor.all %}{{ formf.formf }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.sizes.all %}
+                  <tr>
+                    <th class="py-2 align-middle">Размеры:</th>
+                    <td class="py-2 text-break">
+                        {% for size in product.sizes.all %}{{ size.name }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if product.operating_temperature is not none %}
+                  <tr>
+                    <th class="py-2 align-middle">Температура эксплуатации:</th>
+                    <td class="py-2 text-break">
+                        {{ product.operating_temperature }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.storage_temperature is not none %}
+                  <tr>
+                    <th class="py-2 align-middle">Температура хранения:</th>
+                    <td class="py-2 text-break">
+                        {{ product.storage_temperature }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.operating_humidity is not none %}
+                  <tr>
+                    <th class="py-2 align-middle">Рабочая влажность:</th>
+                    <td class="py-2 text-break">
+                        {{ product.operating_humidity }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if product.storage_humidity is not none %}
+                  <tr>
+                    <th class="py-2 align-middle">Влажность хранения:</th>
+                    <td class="py-2 text-break">
+                        {{ product.storage_humidity }}
+                    </td>
+                  </tr>
+                  {% endif %}
+              </table>
+              
+              </div>
+            </div>
+            <!-- Pills content -->
+          </div>
+        </div>      
+        <div class="col-lg-4">
+          <div class="px-0 border rounded-2 shadow-0">
+            <div class="card no-hover-zoom">
+              <div class="card-body">
+                <h5 class="card-title">Похожие товары</h5>
+                {% for similar_product in similar_products %}
+                <a href="{% url 'product_detail' similar_product.id %}" class="d-flex mt-4 hover-zoom-container nav-link">
+                  <div class="me-3">
+                    {% if similar_product.images.all.0.image.url %}
+                    <img src="{{ similar_product.images.all.0.image.url }}" style="object-fit: contain; width: 100px; height: 100px;" class="img-md img-thumbnail" />
+                    {% else %}
+                    <img src="{% static 'images/placeholder.png' %}" style="object-fit: contain; width: 100px; height: 100px;" class="img-md img-thumbnail" />
+                    {% endif %}
+                  </div>
+                  <div class="info">
+                    <strong class="text-dark"> {{ similar_product.name }} </strong>
+                    {% if similar_product.features %}
+                    <span class="features">{{ similar_product.features }}</span>
+                    {% endif %}
+                  </div>
+                </a>
+                {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<!-- <script src="https://mdbootstrap.com/api/snippets/static/download/MDB5-Free_6.2.0/js/mdb.min.js"></script> -->
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+Профиль
+{% endblock %}
+{% block content %}
+<div class="container d-flex" style="min-height: 42.5vh; width: 80%;">
+<div class="mt-3 d-flex flex-column w-100">
+<div class="px-3 py-2 bg-white">
+    <!-- Pills navs -->
+    <ul class="nav nav-pills nav-justified" id="ex1" role="tablist">
+      <li class="nav-item d-flex" role="presentation">
+        <a class="nav-link d-flex align-items-center justify-content-center w-100 active h-auto" id="ex1-tab-1" data-mdb-toggle="pill" href="#ex1-pills-1" role="tab" aria-controls="ex1-pills-1" aria-selected="true">Информация об аккаунте</a>
+      </li>
+      <li class="nav-item d-flex" role="presentation">
+        <a class="nav-link d-flex align-items-center justify-content-center w-100 h-auto" id="ex1-tab-2" data-mdb-toggle="pill" href="#ex1-pills-2" role="tab" aria-controls="ex1-pills-2" aria-selected="false">Смена пароля</a>
+      </li>
+      <li class="nav-item d-flex" role="presentation">
+        <a class="nav-link d-flex align-items-center justify-content-center w-100 h-auto" id="ex1-tab-3" data-mdb-toggle="pill" href="#ex1-pills-3" role="tab" aria-controls="ex1-pills-3" aria-selected="false">Мои заказы</a>
+      </li>
+      <li class="nav-item d-flex" role="presentation">
+        <a class="nav-link d-flex align-items-center justify-content-center w-100 h-auto" id="ex1-tab-4" data-mdb-toggle="pill" href="#ex1-pills-4" role="tab" aria-controls="ex1-pills-4" aria-selected="false">Мои Коммерческие Предложения</a>
+      </li>
+    </ul>
+    <!-- Pills navs -->
+    <!-- Pills content -->
+    <div class="tab-content" id="ex1-content">
+      <div class="tab-pane fade show active" id="ex1-pills-1" role="tabpanel" aria-labelledby="ex1-tab-1">
+        <table class="table border mt-3 mb-2">
+            <tr>
+              <th class="py-2 align-middle">Имя и Фамилиия:</th>
+              <td class="py-2 text-break">
+                {{ user.first_name }} {{ user.last_name }}
+              </td>
+          </tr>
+          <tr>
+            <th class="py-2 align-middle">Почта:</th>
+            <td class="py-2 text-break">
+                {{ user.email }}
+            </td>
+        </tr> 
+        {% if custom_profile %}
+        <tr>
+          <th class="py-2 align-middle">Номер телефона:</th>
+          <td class="py-2 text-break">
+            {{ custom_profile.phone_number }}
+          </td>
+      </tr>
+      <tr>
+        <th class="py-2 align-middle">Организация:</th>
+        <td class="py-2 text-break">
+            {{ custom_profile.organization }}
+        </td>
+    </tr> 
+        {% endif %}
+    </table>
+      </div>
+      <div class="tab-pane fade mb-2" id="ex1-pills-2" role="tabpanel" aria-labelledby="ex1-tab-2">
+      <form method="post" class="password-change-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_old_password">Старый пароль:</label>
+            <input type="password" name="old_password" id="id_old_password" class="form-control" required>
+        </div>
+          
+        <div class="form-group">
+            <label for="id_new_password1">Новый пароль:</label>
+            <input type="password" name="new_password1" id="id_new_password1" class="form-control" required>
+        </div>
+        <small class="form-text text-muted">
+          Пароль не должен быть слишком похож на другую вашу личную информацию.<br>
+          Ваш пароль должен содержать как минимум 8 символов.<br>
+          Пароль не должен быть слишком простым и распространенным.<br>
+          Пароль не может состоять только из цифр.
+        </small>
+        
+        <div class="form-group">
+            <label for="id_new_password2">Подтвердите новый пароль:</label>
+            <input type="password" name="new_password2" id="id_new_password2" class="form-control" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-100 mt-3">Сменить пароль</button>
+      </form>
+
+      </div>
+      <div class="tab-pane fade mb-2" id="ex1-pills-3" role="tabpanel" aria-labelledby="ex1-tab-3"> 
+        {% if orders %}
+        <h3 class="text-center text-muted my-4 fw-light">В процессе</h3>
+        {% for order in orders %}
+            {% if order.status != 'delivered' %}
+                <div class="card {% if forloop.first %}mt-2{% else %}mt-4{% endif %}" style="box-shadow: none; border: 1px solid rgba(0, 0, 0, 0.1);">
+                    <div class="card-body">
+                        <h6>Идентификатор заказа: №{{ order.id }}</h6>
+                        <div class="card-body row">
+                            <div class="col"> <strong>Дата создания:</strong> <br>{{ order.created_at }} </div>
+                            <div class="col"> <strong>Адрес доставки:</strong> <br> {{ order.delivery_address }} <br><i class="fa fa-phone"></i>{% if custom_profile %} {{ custom_profile.phone_number }} {% endif %}</div>
+                            <div class="col"> <strong>Статус:</strong> <br> {{ order.get_status_display }}</div>
+                            <div class="col"> <strong>Сумма заказа:</strong> <br> {% if order.total_price == 0 %} Цена не утверждена {% else %} {{ order.total_price }}{% endif %}</div>
+                            <div class="col"> <strong>Детали заказа:</strong> <br> <a href="{% url 'user_order_details'  order.id %}" style="color: #00a2e8;">Перейти</a> </div>
+                        </div>  
+                        <div class="track">
+                          <div class="step {% if order.status == 'confirmed' or order.status == 'being_assembled' or order.status == 'dispatched' or order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-check"></i> </span> 
+                              <span class="text">Подтвержден</span> 
+                          </div>
+                          <div class="step {% if order.status == 'being_assembled' or order.status == 'dispatched' or order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-user"></i> </span> 
+                              <span class="text">Собирается</span> 
+                          </div>
+                          <div class="step {% if order.status == 'dispatched' or order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-truck"></i> </span> 
+                              <span class="text">Отправлен</span> 
+                          </div>
+                          <div class="step {% if order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-box"></i> </span> 
+                              <span class="text">Доставлен</span> 
+                          </div>
+                      </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+        <h3 class="text-center text-muted mt-4 mb-0 fw-light">Доставлено</h3>
+        {% for order in orders %}
+            {% if order.status == 'delivered' %}
+                <div class="card {% if forloop.first %}mt-2{% else %}mt-4{% endif %}" style="box-shadow: none; border: 1px solid rgba(0, 0, 0, 0.1);">
+                    <div class="card-body">
+                        <h6>Идентификатор заказа: №{{ order.id }}</h6>
+                        <div class="card-body row">
+                            <div class="col"> <strong>Дата создания:</strong> <br>{{ order.created_at }} </div>
+                            <div class="col"> <strong>Адрес доставки:</strong> <br> {{ order.delivery_address }} <br><i class="fa fa-phone"></i>{% if custom_profile %} {{ custom_profile.phone_number }} {% endif %}</div>
+                            <div class="col"> <strong>Статус:</strong> <br> {{ order.get_status_display }}</div>
+                            <div class="col"> <strong>Сумма заказа:</strong> <br> {% if order.total_price == 0 %} Цена не утверждена {% else %} {{ order.total_price }}{% endif %}</div>
+                            <div class="col"> <strong>Детали заказа:</strong> <br> <a href="{% url 'user_order_details'  order.id %}" style="color: #00a2e8;">Перейти</a> </div>
+                        </div>  
+                        <div class="track">
+                          <div class="step {% if order.status == 'confirmed' or order.status == 'being_assembled' or order.status == 'dispatched' or order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-check"></i> </span> 
+                              <span class="text">Подтвержден</span> 
+                          </div>
+                          <div class="step {% if order.status == 'being_assembled' or order.status == 'dispatched' or order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-user"></i> </span> 
+                              <span class="text">Собирается</span> 
+                          </div>
+                          <div class="step {% if order.status == 'dispatched' or order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-truck"></i> </span> 
+                              <span class="text">Отправлен</span> 
+                          </div>
+                          <div class="step {% if order.status == 'delivered' %}active{% endif %}"> 
+                              <span class="icon"> <i class="fa fa-box"></i> </span> 
+                              <span class="text">Доставлен</span> 
+                          </div>
+                      </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+          {% else %}
+          <div class="alert alert-info mt-3 text-center" role="alert">
+            <strong>Тут пока пусто!</strong> Сделайте заказ чтобы отслеживать его статус  
+        </div>
+        {% endif %}
+    </div>
+    <div class="tab-pane fade" id="ex1-pills-4" role="tabpanel" aria-labelledby="ex1-tab-4">
+      <table class="table border mt-3 mb-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>От</th>
+                <!-- <th>Организация</th> -->
+                <th class="text-center">Детали</th>
+                <th class="text-center">Документ</th>
+            </tr>
+        </thead>
+        <tbody id="requestsTableBody">
+            {% for commercial_request in commercial_requests %}
+                <tr class="request-row{% if forloop.counter > 5 %} d-none{% endif %}">
+                    <td class="align-middle">{{ commercial_request.id }}</td>
+                    <td class="align-middle">{{ commercial_request.created_at }}</td>
+                    <!-- <td class="align-middle">{{ commercial_request.user.custom.organization }}</td> -->
+                    <td class="text-center align-middle">
+                        <div class="d-grid">
+                            <a href="{% url 'commercial_request_detail_user' commercial_request.id %}" style="justify-self: center;">Просмотр</a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-grid">
+                            <a href="{% url 'commercial_request_document' commercial_request.id %}" class="btn btn-primary">Получить документ</a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button id="showMoreButton" class="showmore" style="background-color: transparent; border: none;">Показать все</button>
+    
+    
+    </div>
+    
+    </div>
+    
+    <!-- Pills content -->
+  </div>
+  <div class="mx-3 mt-auto">
+  <a class="btn btn-primary shadow-0 w-100 d-block" href="{% url 'commercial_offer' %}">Получить Коммерческое Предложение</a>
+</div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const showMoreButton = document.getElementById('showMoreButton');
+    const rows = document.querySelectorAll('#requestsTableBody .request-row');
+    
+    let allShown = false;
+
+    showMoreButton.addEventListener('click', function() {
+        if (allShown) {
+            rows.forEach((row, index) => {
+                if (index >= 5) row.classList.add('d-none');
+            });
+            showMoreButton.textContent = 'Показать все';
+        } else {
+            rows.forEach(row => row.classList.remove('d-none'));
+            showMoreButton.textContent = 'Скрыть';
+        }
+        allShown = !allShown;
+    });
+});
+
+</script>
+<script src="https://mdbootstrap.com/api/snippets/static/download/MDB5-Free_6.2.0/js/mdb.min.js"></script>
+{% endblock %}

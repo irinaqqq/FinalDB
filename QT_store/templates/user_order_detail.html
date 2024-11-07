@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+Детали заказа №{{ order.id }}
+{% endblock %}
+{% block content %}
+<div class="image-container2" style="background-position: center; background-image: url('{% static 'images/abstract.webp' %}');">
+    <div class="text-container3">
+        Детали заказа №{{ order.id }}
+    </div>
+</div>
+<div class="container">
+    <table class="table border mt-3 mb-2">
+        <tbody>
+            <tr>
+                <th>Дата создания</th>
+                <td>{{ order.created_at }}</td>
+            </tr>
+            <tr>
+                <th>Адрес доставки</th>
+                <td>{{ order.delivery_address }}</td>
+            </tr>
+            <tr>
+                <th>Телефон заказчика</th>
+                <td>{% if order.user.custom.phone_number %} {{ order.user.custom.phone_number }} {% else %} Номер не указан {% endif %}</td>
+            </tr>
+            <tr>
+                <th>Статус</th>
+                <td>{{ order.get_status_display }}</td>
+            </tr>
+            <tr>
+                <th>Сумма заказа</th>
+                <td>{% if order.total_price == 0 %} Цена не утверждена {% else %} {{ order.total_price }}{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table border mt-3 mb-2">
+        <thead>
+            <tr>
+                <th>Продукт</th>
+                <th class="text-center">Количество</th>
+                <th class="text-center">Детали</th>
+                <th class="text-center">Цена</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td class="align-middle">
+                    <a href="{% url 'product_detail' item.product.pk %}">{{ item.product.name }}</a>
+                </td>
+                <td class="text-center align-middle">{{ item.quantity }}</td>
+                <td class="text-center align-middle">
+                    <button id="toggle-button-{{ forloop.counter0 }}" type="button" class="btn btn-primary" style="width: 100px;" onclick="toggleDetails({{ forloop.counter0 }})">Показать</button>
+                </td>
+                <td class="text-center align-middle">
+                    {% if item.price == 0 %}
+                    Цена не утверждена 
+                    {% else %}
+                    {{ item.price }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr id="details-{{ forloop.counter0 }}" style="display: none;">
+                <td colspan="4">
+                    <table class="table table-bordered">
+                        {% if item.processor %}
+                        <tr>
+                            <th>Процессор</th>
+                            <td>{{ item.processor }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.mother %}
+                        <tr>
+                            <th>Материнская плата</th>
+                            <td>{{ item.mother }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.ram %}
+                        <tr>
+                            <th>ОЗУ</th>
+                            <td>{{ item.ram }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.storage %}
+                        <tr>
+                            <th>Накопитель</th>
+                            <td>{{ item.storage }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.graphics %}
+                        <tr>
+                            <th>Память графического процессора</th>
+                            <td>{{ item.graphics }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.operating_system %}
+                        <tr>
+                            <th>Операционная система</th>
+                            <td>{{ item.operating_system }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.screen_sizes %}
+                        <tr>
+                            <th>Размер экрана</th>
+                            <td>{{ item.screen_sizes }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.screen_type %}
+                        <tr>
+                            <th>Тип экрана</th>
+                            <td>{{ item.screen_type }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.screen_resolution %}
+                        <tr>
+                            <th>Разрешение экрана</th>
+                            <td>{{ item.screen_resolution }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.touch_screen_touches %}
+                        <tr>
+                            <th>Сенсорный экран количество одновременных касаний</th>
+                            <td>{{ item.touch_screen_touches }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.formfactor %}
+                        <tr>
+                            <th>Форм-фактор</th>
+                            <td>{{ item.formfactor }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.webcam %}
+                        <tr>
+                            <th>Веб-камера</th>
+                            <td>{{ item.webcam }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.keyset %}
+                        <tr>
+                            <th>Набор клавиатуры мыши</th>
+                            <td>{{ item.keyset }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.keyboard_backlight %}
+                        <tr>
+                            <th>Подсветка клавиатуры</th>
+                            <td>{{ item.keyboard_backlight }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.power_supplies %}
+                        <tr>
+                            <th>Блок питания</th>
+                            <td>{{ item.power_supplies }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.sizes %}
+                        <tr>
+                            <th>Размеры</th>
+                            <td>{{ item.sizes }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.controllers %}
+                        <tr>
+                            <th>Контроллеры</th>
+                            <td>{{ item.controllers }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if item.note %}
+                        <tr>
+                            <th>Примечание</th>
+                            <td>{{ item.note }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+
+    </script>
+{% endblock %}
