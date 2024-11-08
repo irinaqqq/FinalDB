@@ -14,13 +14,13 @@ Before starting, make sure you have the following installed on your system:
 Clone the project from GitHub using the following command:
 
 ```bash
-git clone <repository_url>
+git clone https://github.com/irinaqqq/FinalDB.git
 ```
 
-Replace `<https://github.com/irinaqqq/FinalDB.git>` with the actual URL of your GitHub repository. Once cloned, navigate to the project directory:
+Once cloned, navigate to the project directory:
 
 ```bash
-cd <FinalDB-main>
+cd FinalDB-main
 ```
 
 ## Step 2: Set Up a Virtual Environment
